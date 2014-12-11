@@ -1,0 +1,10 @@
+Package: docoder
+Type: Package
+Title: Decode the coded DOC visitor count data into a R data frame
+Version: 1.0
+Date: 2014-12-11
+Author: Yvan Richard (Dragonfly Data Science)
+Maintainer: Yvan Richard <yvan@dragonfly.co.nz>
+Description: Decode the coded DOC visitor count data into a R data frame
+License: GPL-3
+Imports: R.utils

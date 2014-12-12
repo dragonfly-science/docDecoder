@@ -18,8 +18,8 @@ Usage
 
 The main function, `decode_string()`, takes a string of encoded
 data, and outputs a data frame with the date/time of the count and the count. 
-The utility function `decode_file()` reads encoded data from a file, and passes it to
-decode_string().
+The utility function `decode_file()` reads encoded data from a file, and passes it through
+`decode_string()`.
 
 Examples
 --------

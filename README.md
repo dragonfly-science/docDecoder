@@ -25,6 +25,8 @@ Examples
 --------
 
 ```r
+library(docoder)
+
 ## Decode a string
 enc.string <- "-127,-58,6,76,0,2,110,1,111,1,112,2,113,2,-127,-58,7,76,0,1,110,1,111,1"
 decode_string(enc.string)

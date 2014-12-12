@@ -1,19 +1,19 @@
-\name{decode_file}
-\alias{decode_file}
+\name{decode_string}
+\alias{decode_string}
 \title{
-  Decode coded DOC visitor count data contained in a text file.
+Decode coded DOC visitor count data contained in a text string.
 }
 \description{
-  This function takes an input file containing an input stream of
-  integers and decodes it, producing a data frame with the date/time of
+  This function takes an input string representing an input stream of
+  comma-separated integers and decodes it, producing a data frame with the date/time of
   the count in POSIXct format and the number of visitors.
 }
 \usage{
-decode_file(file, debug = FALSE, test = TRUE, summary = TRUE)
+decode_string(string, debug = FALSE, test = TRUE, summary = TRUE)
 }
 \arguments{
-  \item{file}{
-    path to the text file containing the encoded data on visitor counts
+  \item{string}{
+    path to the string containing the encoded data on visitor counts
   }
   \item{debug}{
     whether or not the intermediate data are retained in output data frame
@@ -39,8 +39,8 @@ decode_file(file, debug = FALSE, test = TRUE, summary = TRUE)
 }
 
 \examples{
-cat("-127,-58,6,76,0,2,110,1,111,1,112,2,113,2,-127,-58,7,76,0,1,110,1,111,1", file='test.txt')
-d <- decode_file('test.txt')
+enc.string <- "-127,-58,6,76,0,2,110,1,111,1,112,2,113,2,-127,-58,7,76,0,1,110,1,111,1"
+d <- decode_string(enc.string)
 d
 }
 \keyword{ manip }

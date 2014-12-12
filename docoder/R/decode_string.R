@@ -1,5 +1,5 @@
 decode_string <-
-function(string, debug = FALSE, test = TRUE, summary = TRUE) {
+function(string, debug = FALSE, test = FALSE, summary = TRUE) {
 
     sAF <- getOption('stringsAsFactors')
     options(stringsAsFactors = FALSE)

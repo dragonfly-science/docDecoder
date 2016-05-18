@@ -8,7 +8,7 @@ function(string, debug = FALSE, test = FALSE, summary = TRUE) {
     vals0 <- unlist(strsplit(strsplit(string, ',')[[1]], '\t'))
     vals <- as.numeric(vals0)
     vals[!is.na(vals) & vals<0] <- vals[!is.na(vals) & vals<0] + 256
-    bvals <- intToBin(vals)
+    bvals <- R.utils::intToBin(vals)
 
     BinToDec <- function(x) 
         sum(2^(which(rev(unlist(strsplit(as.character(x), "")) == 1))-1))
@@ -20,13 +20,11 @@ function(string, debug = FALSE, test = FALSE, summary = TRUE) {
         month <- BinToDec(sprintf('%0.8i', as.numeric(substr(bvals[i+1], 4, 8))))
         day <- BinToDec(sprintf('%0.8i', as.numeric(substr(bvals[i+2], 4, 8))))
         hr <- BinToDec(sprintf('%0.8i', as.numeric(substr(bvals[i+3], 4, 8))))
-        c1 <- BinToDec(bvals[i+4]) # Count 1
-        c2 <- BinToDec(bvals[i+5]) # Count 2
+        c1  <- BinToDec(bvals[i+4]) * 256 + BinToDec(bvals[i+5])
         date <- sprintf('%04i/%02i/%02i', 2000 + year, month, day)
         return(data.frame(date      = date,
                           hour      = hr,
-                          count1    = c1,
-                          count2    = c2,
+                          count     = c1,
                           type      = 'long',
                           startbyte = i))
     }
@@ -34,12 +32,10 @@ function(string, debug = FALSE, test = FALSE, summary = TRUE) {
     shortrec <- function(i) {
         ## Short record (010)
         hr <- BinToDec(sprintf('%0.8i', as.numeric(substr(bvals[i], 4, 8))))
-        c1 <- BinToDec(bvals[i+1])
-        c2 <- BinToDec(bvals[i+2])
+        c1 <- BinToDec(bvals[i+1]) * 256 + BinToDec(bvals[i+2])
         return(data.frame(date      = NA,
                           hour      = hr,
-                          count1    = c1,
-                          count2    = c2,
+                          count     = c1,
                           type      = 'short',
                           startbyte = i))
     }
@@ -48,19 +44,17 @@ function(string, debug = FALSE, test = FALSE, summary = TRUE) {
         ## Tiny record (011)
         x <- sprintf('%0.8i', as.numeric(substr(bvals[i], 4, 8)))  # Hour
         hr <- BinToDec(x)
-        x <- bvals[i+1] # Count 1
+        x <- bvals[i+1]
         if (is.na(x)) {
             warning('Problem decoding ', gsub('\t', '\\\\t', vals0[i+1]), ' at ', i+1)
             c1 <- NA
         } else  c1 <- BinToDec(x)
         return(data.frame(date      = NA,
                           hour      = hr,
-                          count1    = NA,
-                          count2    = c1,
+                          count     = c1,
                           type      = 'tiny',
                           startbyte = i))
     }
-
 
     ## Loop over records
     i <- 1
@@ -93,9 +87,8 @@ function(string, debug = FALSE, test = FALSE, summary = TRUE) {
     }
     df <- do.call('rbind', res)
     
-    ## Convert datetime to POSIX and sum counts over the two bytes
+    ## Convert datetime to POSIX
     df$datetime <- as.POSIXct(sprintf('%s %s:00', df$date, df$hour))
-    df$count <- with(df, ifelse(is.na(count1), 0, count1) + count2)
 
     ## Remove duplicated data
     pre_n <- nrow(df)
@@ -129,20 +122,36 @@ function(string, debug = FALSE, test = FALSE, summary = TRUE) {
                 warning('Some NAs in datetime or count:')
                 print(d[isNA,])
             }
-            if (allpassed)  cat('Ok.\n')
 
             ## Duplicated date-times
-            dupdt <- duplicated(d$datetime)
-            if (sum(dupdt)) {
+            dupdt <- unique(d$datetime[duplicated(d$datetime)])
+            if (length(dupdt)) {
                 allpassed <- F
-                warning(sum(dupdt), ' duplicated datetimes:')
-                ddup <- subset(d, d$datetime %in% d[dupdt, 'datetime'])
-                head(ddup);tail(ddup)
+                warning(length(dupdt), ' duplicated datetimes: ', paste(dupdt, collapse=', '))
+                ddup <- subset(d, d$datetime %in% dupdt)
+                print(ddup)
             }
             return(allpassed)
         }
         ok <- test.decode(df)
         if (ok)  cat('All tests passed\n')  else  cat('Some tests failed!\n')
+    }
+
+    ## Merge counts from duplicated date-times
+    dupdt <- unique(df$datetime[duplicated(df$datetime)])
+    if (length(dupdt)) {
+        dedups <- do.call('rbind', lapply(dupdt, function(d) {
+            df1 <- df[df$datetime %in% d, ]
+            return(data.frame(date = unique(df1$date),
+                              hour = unique(df1$hour),
+                              count = sum(df1$count),
+                              type = paste(unique(df1$type), collapse=','),
+                              startbyte = paste(unique(df1$startbyte), collapse=','),
+                              datetime = unique(df1$datetime)))
+        }))
+        df <- rbind(df[!(df$datetime %in% dupdt),], dedups)
+        df <- df[order(df$datetime), ]
+        rownames(df) <- NULL
     }
 
     ## Remove intermediate columns

@@ -9,7 +9,7 @@
   the count in POSIXct format and the number of visitors.
 }
 \usage{
-decode_file(file, debug = FALSE, test = TRUE, summary = TRUE)
+decode_file(file, debug = FALSE, test = FALSE, summary = TRUE)
 }
 \arguments{
   \item{file}{

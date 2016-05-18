@@ -9,7 +9,7 @@ Decode coded DOC visitor count data contained in a text string.
   the count in POSIXct format and the number of visitors.
 }
 \usage{
-decode_string(string, debug = FALSE, test = TRUE, summary = TRUE)
+decode_string(string, debug = FALSE, test = FALSE, summary = TRUE)
 }
 \arguments{
   \item{string}{
